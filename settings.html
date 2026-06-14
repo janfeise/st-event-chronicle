@@ -1,0 +1,108 @@
+<!-- settings.html — Event Chronicle 设置面板 -->
+<!-- ST 通过 renderExtensionTemplateAsync 加载，注入到设置页 -->
+<div id="ec_settings">
+  <div class="inline-drawer">
+    <div class="inline-drawer-toggle inline-drawer-header">
+      <b>📜 Event Chronicle · 事件编年史</b>
+      <span id="ec_status_badge" style="font-size:0.8em;color:#888;margin-left:8px;"></span>
+      <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+    </div>
+    <div class="inline-drawer-content">
+      <p style="color:#999;font-size:0.9em;">从角色扮演对话中自动提取结构化事件，构建时间线，注入长期记忆。</p>
+
+      <h4>自动提取</h4>
+      <div class="ec-form-row">
+        <div style="flex:1;">
+          <label for="ec_extract_trigger">每 N 条消息触发提取</label>
+          <input type="number" id="ec_extract_trigger" name="extractTriggerCount" min="3" max="100" value="10" class="text_pole">
+          <small class="ec-hint">聊天消息数累计达到后自动提取事件</small>
+        </div>
+        <div style="flex:1;">
+          <label for="ec_merge_trigger">每 N 条新事件触发整理</label>
+          <input type="number" id="ec_merge_trigger" name="mergeTriggerCount" min="2" max="50" value="5" class="text_pole">
+          <small class="ec-hint">新事件累计达到后自动合并去重</small>
+        </div>
+      </div>
+
+      <h4>模型设置 <small style="color:#888;">（可选，留空则复用 ST 配置）</small></h4>
+      <div class="ec-form-row">
+        <div style="flex:1;">
+          <label for="ec_llm_model">模型名称</label>
+          <input type="text" id="ec_llm_model" name="llmOverride.model" placeholder="例如 gpt-4o-mini" class="text_pole">
+        </div>
+        <div style="flex:1;">
+          <label for="ec_llm_temperature">生成温度</label>
+          <input type="number" id="ec_llm_temperature" name="llmOverride.temperature" min="0" max="2" value="0" step="0.1" class="text_pole">
+        </div>
+      </div>
+      <div>
+        <label for="ec_max_tokens">最大输出 Token</label>
+        <input type="number" id="ec_max_tokens" name="overrideMaxTokens" min="256" max="16384" value="2048" class="text_pole">
+        <small class="ec-hint">事件提取需要足够长度输出完整 JSON</small>
+      </div>
+
+      <h4>一键批量生成</h4>
+      <p class="ec-warning">⚠ 将从整个聊天历史生成事件，消耗大量 Token。</p>
+      <div class="ec-form-row">
+        <div style="flex:1;">
+          <label for="ec_batch_slice">每批消息数</label>
+          <input type="number" id="ec_batch_slice" name="batchSliceSize" min="2" max="20" value="5" class="text_pole">
+        </div>
+      </div>
+      <div class="ec-actions">
+        <button id="ec_batch_start" class="menu_button">▶ 开始批量生成</button>
+        <button id="ec_batch_resume" class="menu_button" style="display:none;">↻ 继续上次进度</button>
+      </div>
+      <div id="ec_batch_progress" style="display:none;">
+        <div class="ec-progress-bar"><div id="ec_batch_fill" class="ec-progress-fill"></div></div>
+        <div id="ec_batch_text" class="ec-progress-text"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// settings 交互逻辑（同窗口内运行，可直接访问 EventChronicle API）
+(function() {
+  function getAPI() {
+    return window.EventChronicle || (window.opener && window.opener.EventChronicle) || null;
+  }
+
+  function updateBadge() {
+    var api = getAPI();
+    var b = document.getElementById('ec_status_badge');
+    if (!b) return;
+    if (!api) { b.textContent = '未加载'; b.style.color = '#f44336'; return; }
+    b.textContent = api.isReady() ? '🟢 就绪' : '⚪ 待配置';
+    b.style.color = api.isReady() ? '#4caf50' : '#888';
+  }
+
+  document.getElementById('ec_batch_start')?.addEventListener('click', function() {
+    var api = getAPI();
+    if (!api || !api.isReady()) { alert('扩展未就绪，请检查 ST 的 API 配置。'); return; }
+    // 从 ST 上下文获取聊天消息
+    var msgs = [];
+    try { if (typeof getContext === 'function') { var c = getContext(); if (c && c.chat) msgs = c.chat; } } catch(e) {}
+    if (!msgs.length) { alert('未找到聊天消息。'); return; }
+    var sliceSize = parseInt(document.getElementById('ec_batch_slice')?.value || '5', 10);
+    if (!confirm('⚠ 将处理 ' + msgs.length + ' 条消息（每批 ' + sliceSize + ' 条），预计消耗大量 Token。继续？')) return;
+    document.getElementById('ec_batch_start').style.display = 'none';
+    document.getElementById('ec_batch_progress').style.display = 'block';
+    api.startBatchGeneration({
+      messages: msgs, sliceSize: sliceSize,
+      onProgress: function(p) {
+        document.getElementById('ec_batch_fill').style.width = Math.round(p.current/p.total*100) + '%';
+        document.getElementById('ec_batch_text').textContent = p.current + '/' + p.total + ' · ' + p.eventsFound + ' 个事件';
+      },
+      onComplete: function(r) {
+        document.getElementById('ec_batch_text').textContent = '完成！共 ' + r.totalEvents + ' 个事件。';
+        setTimeout(function() { document.getElementById('ec_batch_start').style.display = ''; document.getElementById('ec_batch_progress').style.display = 'none'; }, 4000);
+      },
+      onError: function(e) { alert('错误: ' + (e.message || e)); document.getElementById('ec_batch_start').style.display = ''; }
+    });
+  });
+
+  setInterval(updateBadge, 5000);
+  setTimeout(updateBadge, 1500);
+})();
+</script>

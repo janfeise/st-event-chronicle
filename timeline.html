@@ -1,0 +1,75 @@
+<!-- timeline.html — Event Chronicle 时间线浏览器 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>事件编年史 · 时间线</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #d4d4d4; padding: 20px; min-height: 100vh; }
+    .ec-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #2a2a4a; }
+    .ec-header h1 { font-size: 20px; color: #fff; }
+    .ec-btn { padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .ec-btn-primary { background: #4a6cf7; color: #fff; }
+    .ec-btn-secondary { background: #3a3a5a; color: #ccc; }
+    .ec-btn-danger { background: #d32f2f; color: #fff; }
+    .ec-filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .ec-filters select, .ec-filters input { padding: 5px 8px; border: 1px solid #3a3a5a; border-radius: 4px; background: #12122a; color: #d4d4d4; font-size: 13px; }
+    .ec-group-header { display: flex; align-items: center; gap: 8px; padding: 8px 0; margin: 20px 0 8px; border-bottom: 1px dashed #2a2a4a; }
+    .ec-group-header h3 { font-size: 14px; color: #aaa; }
+    .ec-badge { background: #2a2a4a; color: #999; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+    .ec-event-card { background: #16213e; border: 1px solid #2a2a4a; border-radius: 6px; padding: 12px 14px; margin-bottom: 6px; }
+    .ec-event-time { font-size: 11px; color: #666; margin-bottom: 2px; }
+    .ec-event-title { font-size: 15px; font-weight: 600; color: #fff; }
+    .ec-event-stars { font-size: 11px; }
+    .ec-star-filled { color: #ffd700; } .ec-star-empty { color: #3a3a5a; }
+    .ec-event-summary { font-size: 13px; color: #bbb; margin: 6px 0; }
+    .ec-event-meta { display: flex; gap: 6px; font-size: 11px; color: #888; margin-bottom: 6px; }
+    .ec-event-meta span { background: #1e1e3a; padding: 2px 6px; border-radius: 3px; }
+    .ec-tag { background: #2a2a5a; color: #8090d0; font-size: 10px; padding: 2px 6px; border-radius: 3px; margin-right: 3px; }
+    .ec-event-actions { display: flex; justify-content: flex-end; gap: 4px; margin-top: 6px; }
+    .ec-empty { text-align: center; padding: 60px 20px; color: #666; }
+    .ec-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
+    .ec-modal-overlay.active { display: flex; }
+    .ec-modal { background: #1e1e3a; border: 1px solid #3a3a5a; border-radius: 8px; padding: 20px; width: 480px; max-width: 90vw; }
+    .ec-modal h3 { color: #fff; margin-bottom: 14px; font-size: 16px; }
+    .ec-modal .ec-field { margin-bottom: 10px; }
+    .ec-modal label { display: block; font-size: 13px; color: #ccc; margin-bottom: 3px; }
+    .ec-modal input, .ec-modal textarea { width: 100%; padding: 6px 8px; border: 1px solid #3a3a5a; border-radius: 4px; background: #12122a; color: #d4d4d4; font-size: 13px; }
+    .ec-modal textarea { min-height: 70px; resize: vertical; }
+    .ec-modal-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="ec-header">
+  <h1>📜 事件编年史 · 时间线</h1>
+  <div><button class="ec-btn ec-btn-secondary" onclick="refresh()">⟳ 刷新</button> <button class="ec-btn ec-btn-primary" onclick="doExport()">📋 导出记忆</button></div>
+</div>
+
+<div class="ec-filters">
+  <select id="flt_loc" onchange="apply()"><option value="">所有地点</option></select>
+  <select id="flt_imp" onchange="apply()"><option value="0">全部重要度</option><option value="7">★7+ 关键</option><option value="9">★9+ 决定</option></select>
+  <input id="flt_search" placeholder="搜索事件..." oninput="apply()" style="flex:1;">
+  <span id="ec_count" style="color:#888;font-size:13px;"></span>
+</div>
+
+<div id="ec_container"><div class="ec-empty"><p>加载中...</p></div></div>
+
+<div id="ec_modal" class="ec-modal-overlay">
+  <div class="ec-modal">
+    <h3 id="ec_modal_title">编辑事件</h3>
+    <div class="ec-field"><label>标题</label><input id="ec_edit_title"></div>
+    <div class="ec-field"><label>概述</label><textarea id="ec_edit_summary"></textarea></div>
+    <div class="ec-field"><label>重要度 (1-10)</label><input type="number" id="ec_edit_imp" min="1" max="10"></div>
+    <div class="ec-field"><label>参与者（逗号分隔）</label><input id="ec_edit_parts"></div>
+    <div class="ec-field"><label>地点</label><input id="ec_edit_loc"></div>
+    <div class="ec-field"><label>标签（逗号分隔）</label><input id="ec_edit_tags"></div>
+    <div class="ec-modal-actions"><button class="ec-btn ec-btn-secondary" onclick="closeModal()">取消</button><button class="ec-btn ec-btn-primary" onclick="saveEdit()">保存</button></div>
+  </div>
+</div>
+
+<script src="timeline.js"></script>
+<script src="editor.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "display_name": "Event Chronicle · 事件编年史",
+  "version": "1.1.0",
+  "author": "Tilex",
+  "js": "index.js",
+  "css": "style.css",
+  "hooks": { "activate": "init" },
+  "loading_order": 100
+}

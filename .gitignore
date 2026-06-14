@@ -1,0 +1,22 @@
+# Event Chronicle ST Extension — .gitignore
+# =============================================================================
+# This extension is installed via ST's "Install from Git URL" feature.
+# ST does: git clone → find manifest.json → require(index.js)
+# All runtime files (including vendor/) are COMMITTED so no install step is needed.
+
+# Runtime data (generated at runtime, never committed)
+data/
+data/**/*
+
+# Node.js
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dev files (keep install.js for SDK updates, but don't commit test artifacts)
+*.log
+
+# env
+.env
