@@ -77,5 +77,5 @@ https://github.com/janfeise/SillyTavern-Visual-Memory
 ## 更多
 
 - [主项目](https://github.com/janfeise/Event-Chronicle)
-- [开发文档](../docs/st-extension-dev.md)
+- [开发文档](https://github.com/janfeise/Event-Chronicle/blob/main/docs/st-extension-dev.md)
 - [主项目 README](../README.md)
