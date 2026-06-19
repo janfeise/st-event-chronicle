@@ -290,9 +290,10 @@ function saveBatchProgress(progress) {
  * @param {object[]} messages ST 消息数组
  * @param {object[]} existingEvents 已有事件
  * @param {object} context ST context { name1, name2 }
+ * @param {number} startIndex 消息在 ctx.chat 中的起始索引
  * @returns {Promise<object[]>}
  */
-export async function extractEvents(messages, existingEvents, context) {
+export async function extractEvents(messages, existingEvents, context, startIndex) {
   console.log(`[EC:Bridge] 🔍 Phase 1: 开始事件提取 — ${messages.length} 条消息, ${(existingEvents || []).length} 个已有事件`);
 
   if (!messages || !messages.length) {
@@ -356,15 +357,19 @@ export async function extractEvents(messages, existingEvents, context) {
 
   console.log(`[EC:Bridge] 📋 LLM 返回 ${parsed.length} 个候选事件`);
 
-  // 7. 注入 ID + timestamp（使用最后一条消息的发送时间，而非提取时间）
+  // 7. 注入 ID + timestamp + source（使用最后一条消息的发送时间，而非提取时间）
   const lastMsg = messages[messages.length - 1];
   const ts = lastMsg?.send_date
     ? Math.floor(new Date(lastMsg.send_date).getTime() / 1000)
     : nowTimestamp();
+  const startIdx = startIndex || 0;
+  const endIdx = startIdx + messages.length;
+  const preview = String(lastMsg?.mes || lastMsg?.content || '').slice(0, 100);
   const eventsWithIds = parsed.map(e => ({
     ...e,
     id: e.id || generateEventId(),
     timestamp: e.timestamp || ts,
+    source: e.source || { range: [startIdx, endIdx], count: messages.length, preview },
   }));
 
   // 8. 验证必需字段
@@ -561,7 +566,7 @@ export async function processMessages(messages, opts) {
 
   // 2. Phase 1: 提取
   const startTime = performance.now();
-  const newEvents = await extractEvents(messages, existing, context);
+  const newEvents = await extractEvents(messages, existing, context, opts.startIndex);
   console.log(`[EC:Bridge] ⏱ Phase 1 耗时: ${(performance.now() - startTime).toFixed(0)}ms`);
 
   if (!newEvents.length) {
@@ -676,6 +681,7 @@ export async function startBatchGeneration(opts) {
 
         const result = await processMessages(chunk, {
           context, autoMerge: false, mergeThreshold: 999,
+          startIndex: idx,
         });
         totalFound += result.events.length;
         idx = end;

@@ -159,6 +159,10 @@
         : "") +
       "</div>" +
       '<div class="event-actions">' +
+      (e.source
+        ? '<button class="btn btn-ghost" onclick="toggleSource(\'' + attr(e.id) + '\')">' +
+          icon("auto_stories") + " 来源消息 (" + e.source.count + ")</button>"
+        : "") +
       '<button class="btn btn-ghost" onclick="edit(\'' +
       attr(e.id) +
       "')\">" +
@@ -172,10 +176,56 @@
       "</div>" +
       "</div>" +
       (tags ? '<div class="event-tags">' + tags + "</div>" : "") +
+      '<div id="src_' + attr(e.id) + '" class="event-source" style="display:none;"></div>' +
       "</div>" +
       "</div>"
     );
   }
+
+  window.toggleSource = function (eventId) {
+    var el = document.getElementById("src_" + eventId);
+    if (!el) return;
+    if (el.style.display !== "none") {
+      el.style.display = "none";
+      return;
+    }
+
+    var ev = filtered.find(function (e) {
+      return e.id === eventId;
+    });
+    if (!ev || !ev.source) return;
+
+    var msgs;
+    var a = api();
+    if (a && a.getMessagesByRange) {
+      msgs = a.getMessagesByRange(ev.source.range[0], ev.source.range[1]);
+    }
+
+    if (!msgs || !msgs.length) {
+      el.innerHTML = ev.source.preview
+        ? '<div class="source-msg source-fallback"><div class="source-text">' +
+          esc(ev.source.preview) +
+          '...</div><div class="source-hint">来源消息不可用，仅显示预览</div></div>'
+        : '<div class="source-msg source-fallback"><div class="source-text" style="color:#888;">来源消息不可用</div></div>';
+    } else {
+      el.innerHTML = msgs
+        .map(function (m) {
+          return (
+            '<div class="source-msg ' +
+            (m.is_user ? "source-user" : "source-char") +
+            '">' +
+            '<div class="source-name">' +
+            esc(m.name) +
+            "</div>" +
+            '<div class="source-text">' +
+            esc(m.mes) +
+            "</div></div>"
+          );
+        })
+        .join("");
+    }
+    el.style.display = "block";
+  };
 
   window.doExport = function () {
     var a = api();

@@ -442,6 +442,7 @@ async function onCharacterMessageRendered() {
       context: { name1: context.name1, name2: context.name2 },
       autoMerge: true,
       mergeThreshold: getSettings().mergeTriggerCount || 5,
+      startIndex: chat.length - threshold,
     });
 
     // API 成功 — 更新追踪标记
@@ -910,6 +911,21 @@ const API = {
   clearEvents: () => {
     ecBridge.clearEvents();
     ecBridge.saveAndPersist();
+  },
+  getMessagesByRange: (start, end) => {
+    const ctx = getContext();
+    if (!ctx || !ctx.chat) return [];
+    const result = [];
+    for (let i = Math.max(0, start); i < Math.min(end, ctx.chat.length); i++) {
+      const m = ctx.chat[i];
+      result.push({
+        name: m.name || '',
+        mes: m.mes || '',
+        is_user: !!m.is_user,
+        send_date: m.send_date || '',
+      });
+    }
+    return result;
   },
   exportMemory: (opts) => ecBridge.getMemory(opts),
   startBatchGeneration: (opts) =>
