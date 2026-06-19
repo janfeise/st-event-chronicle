@@ -13,7 +13,7 @@
 
   window.refresh = function() {
     var a = api();
-    if (!a) { document.getElementById('ec_container').innerHTML = '<div class="ec-empty"><p>扩展未连接</p></div>'; return; }
+    if (!a) { document.getElementById('ec_container').innerHTML = '<div class="empty"><span class="material-symbols-outlined">cloud_off</span><p>扩展未连接</p></div>'; return; }
     // 按当前聊天 ID 筛选事件，无 chatId 时回退到全部
     if (chatId) {
       all = a.getEvents(chatId) || [];
@@ -47,28 +47,60 @@
 
   function render(events) {
     var c = document.getElementById('ec_container');
-    if (!events.length) { c.innerHTML = '<div class="ec-empty"><p>暂无事件。开始聊天以构建编年史。</p></div>'; return; }
+    if (!events.length) {
+      c.innerHTML = '<div class="empty"><span class="material-symbols-outlined">hourglass_empty</span><p>暂无事件。开始聊天以构建编年史。</p></div>';
+      return;
+    }
     var groups = new Map();
     events.forEach(function(e) { var k = e.location || '未归类'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(e); });
     var h = '';
     groups.forEach(function(evts, name) {
-      h += '<div class="ec-group-header"><h3>📍 ' + esc(name) + '</h3><span class="ec-badge">' + evts.length + ' 个事件</span></div>';
+      h += '<div class="group-header"><span class="material-symbols-outlined icon">location_on</span><h3>' + esc(name) + '</h3><span class="group-badge">' + evts.length + ' 个事件</span></div>';
+      h += '<div class="timeline">';
       evts.forEach(function(e) { h += card(e); });
+      h += '<div class="timeline-end"></div>';
+      h += '</div>';
     });
     c.innerHTML = h;
   }
 
   function card(e) {
-    var stars = ''; for (var i = 1; i <= 10; i++) stars += i <= (e.importance||5) ? '<span class="ec-star-filled">★</span>' : '<span class="ec-star-empty">☆</span>';
-    var tags = (e.tags||[]).map(function(t) { return '<span class="ec-tag">' + esc(t) + '</span>'; }).join('');
-    var time = ''; var m = (e.id||'').match(/evt_(\d+)/); if (m) { try { time = new Date(parseInt(m[1])).toLocaleString(); } catch(_){} }
-    return '<div class="ec-event-card">' +
-      (time ? '<div class="ec-event-time">📅 ' + esc(time) + '</div>' : '') +
-      '<div style="display:flex;justify-content:space-between;"><span class="ec-event-title">' + esc(e.title||'未命名') + '</span><span class="ec-event-stars">' + stars + '</span></div>' +
-      '<div class="ec-event-summary">' + esc(e.summary||'') + '</div>' +
-      '<div class="ec-event-meta">' + ((e.participants||[]).length ? '<span>👤 ' + esc(e.participants.join(', ')) + '</span>' : '') + (e.location ? '<span>📍 ' + esc(e.location) + '</span>' : '') + '</div>' +
-      (tags ? '<div>' + tags + '</div>' : '') +
-      '<div class="ec-event-actions"><button class="ec-btn ec-btn-secondary" onclick="edit(\'' + attr(e.id) + '\')">✏️ 编辑</button><button class="ec-btn ec-btn-danger" onclick="del(\'' + attr(e.id) + '\')">🗑 删除</button></div></div>';
+    var stars = '';
+    var imp = e.importance || 5;
+    for (var i = 1; i <= 10; i++) {
+      stars += i <= imp
+        ? '<span class="star">★</span>'
+        : '<span class="star-empty">☆</span>';
+    }
+    var tags = (e.tags||[]).map(function(t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('');
+    var time = '';
+    var m = (e.id||'').match(/evt_(\d+)/);
+    if (m) { try { time = new Date(parseInt(m[1])).toLocaleString(); } catch(_){} }
+
+    return '<div class="event-item">' +
+      '<div class="event-node"></div>' +
+      '<div class="event-card">' +
+        '<div class="event-head">' +
+          '<div>' +
+            '<div class="event-title">' + esc(e.title||'未命名') + '</div>' +
+            (time ? '<div class="event-meta"><span class="material-symbols-outlined">schedule</span> ' + esc(time) + '</div>' : '') +
+          '</div>' +
+          '<div class="event-stars">' + stars + '</div>' +
+        '</div>' +
+        '<div class="event-summary">' + esc(e.summary||'') + '</div>' +
+        '<div class="event-foot">' +
+          '<div class="event-meta">' +
+            ((e.participants||[]).length ? '<span class="material-symbols-outlined">group</span> <span>' + esc(e.participants.join(', ')) + '</span>' : '') +
+            (e.location ? '<span class="material-symbols-outlined">location_on</span> <span>' + esc(e.location) + '</span>' : '') +
+          '</div>' +
+          '<div class="event-actions">' +
+            '<button class="btn btn-ghost" onclick="edit(\'' + attr(e.id) + '\')"><span class="material-symbols-outlined">edit</span> 编辑</button>' +
+            '<button class="btn btn-danger" onclick="del(\'' + attr(e.id) + '\')"><span class="material-symbols-outlined">delete</span> 删除</button>' +
+          '</div>' +
+        '</div>' +
+        (tags ? '<div class="event-tags">' + tags + '</div>' : '') +
+      '</div>' +
+    '</div>';
   }
 
   window.doExport = function() {
