@@ -529,44 +529,55 @@ async function manualExtract() {
     return;
   }
 
+  const msgs = context.chat;
+  const settings = getSettings();
+  const status = ecBridge.getIncrementalStatus(msgs.length);
+
+  if (!status.hasPending) {
+    if (typeof toastr !== "undefined")
+      toastr.info("暂无新内容，无需提取", "Event Chronicle");
+    return;
+  }
+
   try {
     inApiCall = true;
-    const settings = getSettings();
-    const messagesToCheck = context.chat.slice(
-      -(settings.extractTriggerCount * 2),
-    );
     console.log(
-      `[Event Chronicle] 🔍 手动提取 — ${messagesToCheck.length} 条消息`,
+      `[Event Chronicle] 🔍 手动提取 — ${status.pending} 条新消息`,
     );
 
-    const result = await ecBridge.processMessages(messagesToCheck, {
+    ecBridge.startBatchGeneration({
+      messages: msgs,
       context: { name1: context.name1, name2: context.name2 },
-      autoMerge: true,
-      mergeThreshold: settings.mergeTriggerCount || 5,
+      sliceSize: settings.batchSliceSize || 12,
+      onStart(s) {
+        if (typeof toastr !== "undefined")
+          toastr.info(`开始处理 ${s.pending} 条消息...`, "Event Chronicle");
+      },
+      onComplete(r) {
+        if (r.noNew) {
+          if (typeof toastr !== "undefined")
+            toastr.info("未发现新事件", "Event Chronicle");
+        } else {
+          if (typeof toastr !== "undefined")
+            toastr.success(
+              `📜 提取完成 — 新增 ${r.newEvents} 个事件，共 ${r.finalCount} 个`,
+              "Event Chronicle",
+            );
+        }
+        updateChroniclePrompt();
+        inApiCall = false;
+      },
+      onError(e) {
+        console.error("[Event Chronicle] ❌ 手动提取失败:", e.message || e);
+        if (typeof toastr !== "undefined")
+          toastr.error("提取失败: " + (e.message || e), "Event Chronicle");
+        inApiCall = false;
+      },
     });
-
-    if (result.events.length) {
-      console.log(
-        `[Event Chronicle] ✅ 手动提取完成 — ${result.events.length} 个新事件`,
-      );
-      if (typeof toastr !== "undefined")
-        toastr.info(
-          `📜 记录 ${result.events.length} 个新事件`,
-          "Event Chronicle",
-        );
-    } else {
-      console.log("[Event Chronicle] ✅ 手动提取完成 — 无新事件");
-      if (typeof toastr !== "undefined")
-        toastr.info("未发现新事件", "Event Chronicle");
-    }
-
-    ecBridge.saveAndPersist();
-    updateChroniclePrompt();
   } catch (err) {
     console.error("[Event Chronicle] ❌ 手动提取失败:", err.message || err);
     if (typeof toastr !== "undefined")
       toastr.error("提取失败: " + (err.message || err), "Event Chronicle");
-  } finally {
     inApiCall = false;
   }
 }
@@ -867,8 +878,8 @@ function setupWandMenu() {
         <span>Visual Memory</span>
       </div>
       <div id="ec_wand_buttons" style="display:none;padding:8px 12px;">
+        <button id="ec_btn_timeline" class="menu_button" style="display:block;width:100%;">📋 时间线浏览</button>
         <button id="ec_btn_extract" class="menu_button" style="display:block;width:100%;margin-bottom:4px;">🔍 立即提取事件</button>
-        <button id="ec_btn_timeline" class="menu_button" style="display:block;width:100%;">📋 时间线浏览器</button>
       </div>
     </div>
   `);
