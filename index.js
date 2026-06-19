@@ -945,36 +945,25 @@ globalThis.EventChronicle = API;
 async function showNotice() {
   const s = getSettings();
   const htmlMsg = [
-    "📜 <b>Visual Memory · 副作用说明</b>",
-    "",
-    "<b>1. Token 增加</b>",
-    "每轮对话的记忆会注入到 LLM 上下文，导致单次请求 token 数增加。",
-    "",
-    "<b>2. Token 逐步递增</b>",
-    "事件不断累积，记忆愈加厚重，token 数随时间增长。",
-    "",
-    "<b>3. LLM 请求增多</b>",
+    "📜 <b>Visual Memory · 副作用说明</b><br>",
+    "<br>",
+    "<b>1. Token 增加</b><br>",
+    "每轮对话的记忆会注入到 LLM 上下文，导致单次请求 token 数增加。<br>",
+    "<br>",
+    "<b>2. Token 逐步递增</b><br>",
+    "事件不断累积，记忆愈加厚重，token 数随时间增长。<br>",
+    "<br>",
+    "<b>3. LLM 请求增多</b><br>",
     `每 ${s.extractTriggerCount} 条消息触发一次事件提取，`,
-    `每 ${s.mergeTriggerCount} 个事件触发一次合并。`,
-    "",
-    "以上阈值均可在扩展设置中配置。",
-  ].join("<br>");
-
-  const plainMsg = [
-    "📜 Visual Memory · 副作用说明",
-    "",
-    "1. Token 增加",
-    "每轮对话的记忆会注入到 LLM 上下文，导致单次请求 token 数增加。",
-    "",
-    "2. Token 逐步递增",
-    "事件不断累积，记忆愈加厚重，token 数随时间增长。",
-    "",
-    "3. LLM 请求增多",
-    `每 ${s.extractTriggerCount} 条消息触发一次事件提取，`,
-    `每 ${s.mergeTriggerCount} 个事件触发一次合并。`,
-    "",
-    "以上阈值均可在扩展设置中配置。",
-  ].join("\n");
+    `每 ${s.mergeTriggerCount} 个事件触发一次合并。<br>`,
+    "<br>",
+    "以上阈值均可在扩展设置中配置。<br>",
+    "<br>",
+    '<button onclick="this.closest(\'.toast\').click()" style="',
+    "margin-top:8px;padding:6px 20px;border-radius:6px;border:1px solid rgba(195,192,255,0.3);",
+    "background:rgba(195,192,255,0.1);color:#c3c0ff;cursor:pointer;font-weight:600;font-size:13px;",
+    '">我已知晓</button>',
+  ].join("");
 
   try {
     if (typeof callGenericPopup === "function") {
@@ -984,15 +973,23 @@ async function showNotice() {
         okButton: "我已知晓",
       });
     } else if (typeof toastr !== "undefined") {
-      toastr.info(plainMsg, "Visual Memory", { timeOut: 0, extendedTimeOut: 0 });
+      toastr.info(htmlMsg, "Visual Memory", {
+        timeOut: 0,
+        extendedTimeOut: 0,
+        escapeHtml: false,
+      });
     } else {
-      alert(plainMsg);
+      alert(
+        "📜 Visual Memory · 副作用说明\n\n" +
+          "1. Token 增加\n每轮对话的记忆会注入到 LLM 上下文，导致单次请求 token 数增加。\n\n" +
+          "2. Token 逐步递增\n事件不断累积，记忆愈加厚重，token 数随时间增长。\n\n" +
+          "3. LLM 请求增多\n" +
+          `每 ${s.extractTriggerCount} 条消息触发一次事件提取，每 ${s.mergeTriggerCount} 个事件触发一次合并。\n\n` +
+          "以上阈值均可在扩展设置中配置。",
+      );
     }
   } catch (e) {
     console.warn("[Event Chronicle] ⚠ 弹窗显示失败:", e);
-    if (typeof toastr !== "undefined") {
-      toastr.info(plainMsg, "Visual Memory", { timeOut: 0, extendedTimeOut: 0 });
-    }
   }
 
   s.noticeShown = true;
