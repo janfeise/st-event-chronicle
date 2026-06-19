@@ -125,8 +125,13 @@
       } catch (_) {}
     }
     var srcBtn = e.source
-      ? '<button class="source-toggle" onclick="toggleSource(\'' + attr(e.id) + '\')">' +
-        icon("auto_stories") + " 来源消息 (" + e.source.count + ")</button>"
+      ? '<button class="source-toggle" onclick="toggleSource(\'' +
+        attr(e.id) +
+        "')\">" +
+        icon("auto_stories") +
+        " 来源消息 (" +
+        e.source.count +
+        ")</button>"
       : "";
 
     return (
@@ -177,7 +182,9 @@
       "</div>" +
       "</div>" +
       (tags ? '<div class="event-tags">' + tags + "</div>" : "") +
-      '<div id="src_' + attr(e.id) + '" class="event-source"></div>' +
+      '<div id="src_' +
+      attr(e.id) +
+      '" class="event-source"></div>' +
       "</div>" +
       "</div>"
     );
@@ -261,9 +268,7 @@
               '<div class="source-text">' +
               esc(m.mes) +
               "</div>" +
-              (time
-                ? '<div class="source-time">' + esc(time) + "</div>"
-                : "") +
+              (time ? '<div class="source-time">' + esc(time) + "</div>" : "") +
               "</div></div>"
             );
           })
@@ -310,7 +315,7 @@
     if (use) {
       use.setAttribute(
         "href",
-        theme === "dark" ? "#icon-dark_mode" : "#icon-light_mode"
+        theme === "dark" ? "#icon-dark_mode" : "#icon-light_mode",
       );
     }
   }
@@ -320,8 +325,8 @@
     var theme =
       saved ||
       (window.matchMedia("(prefers-color-scheme: light)").matches
-        ? "light"
-        : "dark");
+        ? "dark"
+        : "light");
     document.documentElement.setAttribute("data-theme", theme);
     updateThemeIcon(theme);
   }
