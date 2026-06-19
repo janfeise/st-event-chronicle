@@ -1,6 +1,8 @@
-# 📜 Event Chronicle — SillyTavern 扩展
+# 📜 Visual-Memory — SillyTavern 扩展
 
-从 AI 角色扮演对话中自动提取结构化事件，构建可视编年史时间线，注入长期记忆
+可视记忆，让对话不只是对话
+
+从酒馆对话中自动提取事件，构建可视长期记忆
 
 ---
 
@@ -9,10 +11,10 @@
 在 ST 扩展管理中 → **Install from Git URL** → 输入：
 
 ```
-https://github.com/janfeise/st-event-chronicle
+https://github.com/janfeise/SillyTavern-Visual-Memory
 ```
 
-安装位置：`{ST目录}/scripts/extensions/third-party/st-event-chronicle/`
+安装位置：`{ST目录}/data/default-user/extensions/st-event-chronicle/`
 
 无需额外配置，克隆即用
 
