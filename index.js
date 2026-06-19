@@ -19,6 +19,7 @@ import {
   getContext,
   saveMetadataDebounced,
 } from "../../../extensions.js";
+import { callGenericPopup, POPUP_TYPE } from "../../../../popup.js";
 import * as ecBridge from "./ec-bridge.js";
 
 // ---------------------------------------------------------------------------
@@ -33,6 +34,7 @@ const DEFAULT_SETTINGS = {
   overrideMaxTokens: 2048,
   batchSliceSize: 12,
   highlightThreshold: 7,
+  noticeShown: false,
   llmOverride: {
     chat_completion_source: "",
     model: "",
@@ -938,6 +940,49 @@ const API = {
 globalThis.EventChronicle = API;
 
 // ---------------------------------------------------------------------------
+// 首次安装副作用提示
+// ---------------------------------------------------------------------------
+
+async function showNotice() {
+  const s = getSettings();
+  const msg = [
+    "📜 <b>Event Chronicle · 副作用说明</b>",
+    "",
+    "<b>1. Token 增加</b>",
+    "每轮对话的记忆会注入到 LLM 上下文，导致单次请求 token 数增加。",
+    "",
+    "<b>2. Token 逐步递增</b>",
+    "事件不断累积，记忆愈加厚重，token 数随时间增长。",
+    "",
+    "<b>3. LLM 请求增多</b>",
+    `每 ${s.extractTriggerCount} 条消息触发一次事件提取，`,
+    `每 ${s.mergeTriggerCount} 个事件触发一次合并。`,
+    "",
+    "以上阈值均可在扩展设置中配置。",
+  ].join("<br>");
+
+  try {
+    if (typeof callGenericPopup === "function") {
+      await callGenericPopup(msg, POPUP_TYPE.TEXT, "", {
+        okButton: "我已知晓",
+      });
+    } else {
+      alert(msg.replace(/<[^>]+>/g, ""));
+    }
+  } catch (e) {
+    console.warn("[Event Chronicle] ⚠ 弹窗显示失败:", e);
+    if (typeof toastr !== "undefined") {
+      toastr.warning(msg.replace(/<[^>]+>/g, ""), "Event Chronicle", {
+        timeOut: 10000,
+      });
+    }
+  }
+
+  s.noticeShown = true;
+  saveSettingsDebounced();
+}
+
+// ---------------------------------------------------------------------------
 // Init（ST 通过 hooks.activate 调用）
 // ---------------------------------------------------------------------------
 
@@ -961,6 +1006,11 @@ export async function init() {
   ensureSettings();
   ecBridge.setExtSettings(extension_settings);
   console.log("[Event Chronicle] ✅ 全局配置存储已初始化 (extension_settings)");
+
+  // 4.1 首次安装副作用提示
+  if (!getSettings().noticeShown) {
+    showNotice();
+  }
 
   // 4.5 注入 per-chat metadata 存储
   injectMetadata();
