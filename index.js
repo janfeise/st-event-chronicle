@@ -920,10 +920,10 @@ const API = {
     for (let i = Math.max(0, start); i < Math.min(end, ctx.chat.length); i++) {
       const m = ctx.chat[i];
       result.push({
-        name: m.name || '',
-        mes: m.mes || '',
+        name: m.name || "",
+        mes: m.mes || "",
         is_user: !!m.is_user,
-        send_date: m.send_date || '',
+        send_date: m.send_date || "",
       });
     }
     return result;
@@ -944,8 +944,8 @@ globalThis.EventChronicle = API;
 
 async function showNotice() {
   const s = getSettings();
-  const msg = [
-    "📜 <b>Event Chronicle · 副作用说明</b>",
+  const htmlMsg = [
+    "📜 <b>Visual Memory · 副作用说明</b>",
     "",
     "<b>1. Token 增加</b>",
     "每轮对话的记忆会注入到 LLM 上下文，导致单次请求 token 数增加。",
@@ -960,21 +960,38 @@ async function showNotice() {
     "以上阈值均可在扩展设置中配置。",
   ].join("<br>");
 
-  const plainMsg = msg.replace(/<[^>]+>/g, "");
+  const plainMsg = [
+    "📜 Visual Memory · 副作用说明",
+    "",
+    "1. Token 增加",
+    "每轮对话的记忆会注入到 LLM 上下文，导致单次请求 token 数增加。",
+    "",
+    "2. Token 逐步递增",
+    "事件不断累积，记忆愈加厚重，token 数随时间增长。",
+    "",
+    "3. LLM 请求增多",
+    `每 ${s.extractTriggerCount} 条消息触发一次事件提取，`,
+    `每 ${s.mergeTriggerCount} 个事件触发一次合并。`,
+    "",
+    "以上阈值均可在扩展设置中配置。",
+  ].join("\n");
 
   try {
     if (typeof callGenericPopup === "function") {
-      const popupType = typeof POPUP_TYPE !== "undefined" ? POPUP_TYPE.TEXT : "text";
-      await callGenericPopup(msg, popupType, "", {
+      const popupType =
+        typeof POPUP_TYPE !== "undefined" ? POPUP_TYPE.TEXT : "text";
+      await callGenericPopup(htmlMsg, popupType, "", {
         okButton: "我已知晓",
       });
+    } else if (typeof toastr !== "undefined") {
+      toastr.info(plainMsg, "Visual Memory", { timeOut: 0, extendedTimeOut: 0 });
     } else {
       alert(plainMsg);
     }
   } catch (e) {
     console.warn("[Event Chronicle] ⚠ 弹窗显示失败:", e);
     if (typeof toastr !== "undefined") {
-      toastr.warning(plainMsg, "Event Chronicle", { timeOut: 10000 });
+      toastr.info(plainMsg, "Visual Memory", { timeOut: 0, extendedTimeOut: 0 });
     }
   }
 
