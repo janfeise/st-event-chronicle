@@ -60,6 +60,12 @@ function tryParseJsonFromText(text) {
   const startTime = performance.now();
   let jsonStr = text.trim();
 
+  // Layer 0: 空数组 — LLM 明确表示无事件，合法结果
+  if (jsonStr === '[]' || jsonStr === '[ ]') {
+    console.log(`[EC:Bridge] JSON Layer 0 (空数组) — 0 个元素 (${(performance.now() - startTime).toFixed(0)}ms)`);
+    return [];
+  }
+
   // Layer 1: SDK parseEvents — 处理 markdown 代码块 + JSON.parse
   try {
     const parsed = parseEvents(jsonStr);
