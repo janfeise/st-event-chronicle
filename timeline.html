@@ -6,15 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Visual Memory · 可视记忆</title>
-    <!-- 仅标题字体使用 Google Fonts，失败时降级为系统字体 -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-      rel="stylesheet"
-    />
+    <!-- 零外部依赖：所有图标为内联 SVG -->
     <style>
       /* ========== Reset & Base ========== */
       *,
@@ -69,14 +61,15 @@
         line-height: 1.5;
       }
 
-      .material-symbols-outlined {
-        font-variation-settings:
-          "FILL" 0,
-          "wght" 400,
-          "GRAD" 0,
-          "opsz" 24;
-        display: inline-block;
+      /* ========== SVG Icon ========== */
+      .icon {
+        width: 1em;
+        height: 1em;
+        fill: currentColor;
         vertical-align: middle;
+        flex-shrink: 0;
+        display: inline-block;
+        line-height: 1;
       }
 
       /* ========== Header ========== */
@@ -103,7 +96,8 @@
         gap: 12px;
       }
       .header-left .icon {
-        font-size: 32px;
+        width: 32px;
+        height: 32px;
         color: var(--primary);
       }
       .header-title {
@@ -170,8 +164,9 @@
       .btn-danger:hover {
         background: rgba(255, 180, 171, 0.18);
       }
-      .btn .material-symbols-outlined {
-        font-size: 18px;
+      .btn .icon {
+        width: 18px;
+        height: 18px;
       }
 
       /* ========== Main ========== */
@@ -206,8 +201,9 @@
       .search-box:focus-within {
         border-color: rgba(195, 192, 255, 0.5);
       }
-      .search-box .material-symbols-outlined {
-        font-size: 20px;
+      .search-box .icon {
+        width: 20px;
+        height: 20px;
         color: var(--text-muted);
       }
       .search-box input {
@@ -264,7 +260,8 @@
         margin-bottom: 24px;
       }
       .group-header .icon {
-        font-size: 18px;
+        width: 18px;
+        height: 18px;
         color: var(--primary);
       }
       .group-header h3 {
@@ -326,8 +323,7 @@
       }
       .event-node {
         position: absolute;
-        left: -26px;
-        top: 20px;
+        left: -31px;
         width: 14px;
         height: 14px;
         background: var(--bg);
@@ -399,8 +395,9 @@
         font-family: var(--font-mono);
         letter-spacing: 0.03em;
       }
-      .event-meta .material-symbols-outlined {
-        font-size: 16px;
+      .event-meta .icon {
+        width: 16px;
+        height: 16px;
       }
 
       .event-foot {
@@ -438,8 +435,9 @@
         padding: 80px 20px;
         color: var(--text-muted);
       }
-      .empty .material-symbols-outlined {
-        font-size: 48px;
+      .empty .icon {
+        width: 48px;
+        height: 48px;
         display: block;
         margin-bottom: 12px;
       }
@@ -516,21 +514,36 @@
     </style>
   </head>
   <body>
+    <!-- SVG 图标定义（零外部依赖） -->
+    <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="icon-auto_stories" viewBox="0 0 24 24"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></symbol>
+      <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></symbol>
+      <symbol id="icon-ios_share" viewBox="0 0 24 24"><path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.25V4.83L10.17 6.42 8.75 5 12 1.75 16 5zM21 12.75V18c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2h5.25v1.25H5v12h14v-5.25H21z"/></symbol>
+      <symbol id="icon-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
+      <symbol id="icon-hourglass_empty" viewBox="0 0 24 24"><path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6zm10 14.5V20H8v-3.5l4-4 4 4zm-4-5l-4-4V4h8v3.5l-4 4z"/></symbol>
+      <symbol id="icon-cloud_off" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4c-1.48 0-2.85.43-4.01 1.17l1.46 1.46C10.42 5.82 11.17 5.5 12 5.5c2.76 0 5 2.24 5 5h1.5c0-3.31-2.69-6-6-6-1.85 0-3.5.85-4.61 2.19l1.46 1.46C10.25 6.36 11.08 6 12 6c2.21 0 4 1.79 4 4h1.5c0-2.76-2.24-5-5-5-1.63 0-3.09.79-4 2.01l1.46 1.46A3.997 3.997 0 0112 8c-1.1 0-2-.9-2-2h-2c0 2.21 1.79 4 4 4 .55 0 1.08-.11 1.56-.31l1.44 1.44A5.98 5.98 0 0012 10c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM3 5.27l2.73 2.73C4.09 8.74 3 11.24 3 14c0 1.02.26 1.98.71 2.83L1.27 19.35A3.986 3.986 0 010 14c0-2.87 1.56-5.39 3-6.73zm16.73 13.46L2.54 1.5 1.27 2.77l2.73 2.73C4.09 6.24 3.16 7.09 2.44 8.08L1.27 6.91 0 8.18l2.73 2.73c-.13.16-.25.32-.36.49L.27 13.5 1.54 14.77l2.1-2.1c.42.56.92 1.06 1.48 1.48L3 16.27 4.27 17.54l2.1-2.1c.42.33.89.6 1.39.81l-.01.01 1.1 1.1 1.27-1.27-1.1-1.1.01-.01c-.21-.5-.48-.97-.81-1.39l2.1-2.1L10.27 11.5l-2.1 2.1c-.56-.42-1.06-.92-1.48-1.48l2.1-2.1-1.27-1.27-2.1 2.1c.13-.16.25-.32.36-.49L7.08 8.08A5.968 5.968 0 0112 6c2.49 0 4.65 1.51 5.54 3.67l2.19 2.19 1.27-1.27-2.19-2.19zM19 15h-3v2h3v3h2v-3h3v-2h-3v-3h-2v3z"/></symbol>
+      <symbol id="icon-location_on" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></symbol>
+      <symbol id="icon-schedule" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></symbol>
+      <symbol id="icon-group" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></symbol>
+      <symbol id="icon-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 000-1.41l-2.34-2.34a.996.996 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
+      <symbol id="icon-delete" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></symbol>
+    </svg>
+
     <!-- Header -->
     <header class="header">
       <div class="header-inner">
         <div class="header-left">
-          <span class="material-symbols-outlined icon">auto_stories</span>
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><use href="#icon-auto_stories"/></svg>
           <h1 class="header-title">
             Visual Memory<span class="sub">· 可视记忆</span>
           </h1>
         </div>
         <div class="header-actions">
           <button onclick="refresh()" class="btn btn-ghost">
-            <span class="material-symbols-outlined">refresh</span> 刷新
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><use href="#icon-refresh"/></svg> 刷新
           </button>
           <button onclick="doExport()" class="btn btn-primary">
-            <span class="material-symbols-outlined">ios_share</span> 导出记忆
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><use href="#icon-ios_share"/></svg> 导出记忆
           </button>
         </div>
       </div>
@@ -540,7 +553,7 @@
       <!-- Filters -->
       <div class="filters">
         <div class="search-box">
-          <span class="material-symbols-outlined">search</span>
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><use href="#icon-search"/></svg>
           <input
             id="flt_search"
             oninput="apply()"
@@ -562,7 +575,7 @@
       <!-- Timeline Container -->
       <div id="ec_container">
         <div class="empty">
-          <span class="material-symbols-outlined">hourglass_empty</span>
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><use href="#icon-hourglass_empty"/></svg>
           <p>加载中...</p>
         </div>
       </div>

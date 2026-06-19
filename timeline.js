@@ -3,6 +3,11 @@
   var all = [], filtered = [];
   var chatId = new URLSearchParams(location.search).get('chat') || '';
 
+  // SVG 图标引用（依赖 HTML 中的 <svg sprite>）
+  function icon(name) {
+    return '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><use href="#icon-' + name + '"/></svg>';
+  }
+
   function api() {
     // 新窗口（window.open）→ window.opener
     if (window.opener && window.opener.EventChronicle) return window.opener.EventChronicle;
@@ -13,7 +18,7 @@
 
   window.refresh = function() {
     var a = api();
-    if (!a) { document.getElementById('ec_container').innerHTML = '<div class="empty"><span class="material-symbols-outlined">cloud_off</span><p>扩展未连接</p></div>'; return; }
+    if (!a) { document.getElementById('ec_container').innerHTML = '<div class="empty">' + icon('cloud_off') + '<p>扩展未连接</p></div>'; return; }
     // 按当前聊天 ID 筛选事件，无 chatId 时回退到全部
     if (chatId) {
       all = a.getEvents(chatId) || [];
@@ -48,14 +53,14 @@
   function render(events) {
     var c = document.getElementById('ec_container');
     if (!events.length) {
-      c.innerHTML = '<div class="empty"><span class="material-symbols-outlined">hourglass_empty</span><p>暂无事件。开始聊天以构建编年史。</p></div>';
+      c.innerHTML = '<div class="empty">' + icon('hourglass_empty') + '<p>暂无事件。开始聊天以构建编年史。</p></div>';
       return;
     }
     var groups = new Map();
     events.forEach(function(e) { var k = e.location || '未归类'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(e); });
     var h = '';
     groups.forEach(function(evts, name) {
-      h += '<div class="group-header"><span class="material-symbols-outlined icon">location_on</span><h3>' + esc(name) + '</h3><span class="group-badge">' + evts.length + ' 个事件</span></div>';
+      h += '<div class="group-header">' + icon('location_on') + '<h3>' + esc(name) + '</h3><span class="group-badge">' + evts.length + ' 个事件</span></div>';
       h += '<div class="timeline">';
       evts.forEach(function(e) { h += card(e); });
       h += '<div class="timeline-end"></div>';
@@ -83,19 +88,19 @@
         '<div class="event-head">' +
           '<div>' +
             '<div class="event-title">' + esc(e.title||'未命名') + '</div>' +
-            (time ? '<div class="event-meta"><span class="material-symbols-outlined">schedule</span> ' + esc(time) + '</div>' : '') +
+            (time ? '<div class="event-meta">' + icon('schedule') + ' ' + esc(time) + '</div>' : '') +
           '</div>' +
           '<div class="event-stars">' + stars + '</div>' +
         '</div>' +
         '<div class="event-summary">' + esc(e.summary||'') + '</div>' +
         '<div class="event-foot">' +
           '<div class="event-meta">' +
-            ((e.participants||[]).length ? '<span class="material-symbols-outlined">group</span> <span>' + esc(e.participants.join(', ')) + '</span>' : '') +
-            (e.location ? '<span class="material-symbols-outlined">location_on</span> <span>' + esc(e.location) + '</span>' : '') +
+            ((e.participants||[]).length ? icon('group') + ' <span>' + esc(e.participants.join(', ')) + '</span>' : '') +
+            (e.location ? icon('location_on') + ' <span>' + esc(e.location) + '</span>' : '') +
           '</div>' +
           '<div class="event-actions">' +
-            '<button class="btn btn-ghost" onclick="edit(\'' + attr(e.id) + '\')"><span class="material-symbols-outlined">edit</span> 编辑</button>' +
-            '<button class="btn btn-danger" onclick="del(\'' + attr(e.id) + '\')"><span class="material-symbols-outlined">delete</span> 删除</button>' +
+            '<button class="btn btn-ghost" onclick="edit(\'' + attr(e.id) + '\')">' + icon('edit') + ' 编辑</button>' +
+            '<button class="btn btn-danger" onclick="del(\'' + attr(e.id) + '\')">' + icon('delete') + ' 删除</button>' +
           '</div>' +
         '</div>' +
         (tags ? '<div class="event-tags">' + tags + '</div>' : '') +
